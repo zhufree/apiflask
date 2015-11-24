@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Index{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block style %}
+<style type="text/css">
+	body{
+		font-family: "Futura";
+	}
+	.apibox{
+		margin-top: 100px;
+		margin: 8%;
+		background-color: #A8D8B9;
+		height: 200px;
+		text-align: center;
+	}
+	h3{
+		padding: 50px;
+	}
+</style>
+{% endblock %}
+{% block header %}
+<h3>APIs</h3>
+{% endblock %}
+{% block content %}
+<div class='panel panel-default col-md-10 col-md-offset-1' id="mainbox">
+    <div class='panel-body'>
+		<form id="bindForm" method="POST">
+            <div class="form-group input-group">
+                <span class="input-group-addon">学号</span>
+                <input type="text" name="sid" class="form-control" placeholder="" aria-describedby="basic-addon1">
+            </div>
+            <!-- Text input-->
+            <div class="form-group input-group">
+                <span class="input-group-addon">密码</span>
+                <input type="password" name="pwd" class="form-control" placeholder="默认身份证后六位" aria-describedby="basic-addon1">
+            </div>
+            <div class="form-group btn-group btn-group-lg">
+                <button class="btn btn-default" type="submit">登陆</button>
+            </div>
+        </form>
+        <div class='panel-body' id='statusBox'>
+            
+        </div>
+        <div class='panel-body' id='accountBox'>
+            {% if stu %}
+            <form class="loginForm" method="POST">
+                <input type="hidden" name="sid" value="{{stu.stuid}}">
+                <button type="submit" class="btn btn-default">{{stu.stuid}}</button>
+            </form>
+            {% endif %}
+        </div>
+	</div>
+	<div id="boxs" class="row">
+		<a href="/whubook">
+		  <div class="apibox col-md-4">
+		  	<h3>WHU-library-book-api</h3>
+		  </div>
+	  	</a>
+	  	<a href="/whuroom">
+		  <div class="apibox col-md-4">
+		  	<h3>WHU-library-room-api</h3>
+		  </div>
+	  	</a>
+	</div>
+</div>
+
+{% endblock %}
+{% block script %}
+<script>
+$(document).ready(function() {  
+    //表单 submit 事件  
+    $('#bindForm').submit(function() {
+        //ajax 提交表单  
+        $.post('/login/',
+            $('#bindForm').serialize(),
+            function(data) { 
+                if(data['status']) {
+                    var htmlstr='<button type="button" class="btn btn-default">'+data['info']+'</button>';
+                    $('#statusBox').append(htmlstr);
+                }else{
+                    var htmlstr='<div class="alert alert-warning" role="alert">'+data['info']+'</div>';
+                    $('#statusBox').append(htmlstr);
+                }
+            });  
+        return false;       //阻止表单提交  
+    });
+    $('.loginForm').submit(function() {
+        //ajax 提交表单
+        var $this = $(this);
+        $.post('/login/',
+            $this.serialize(),
+            function(data) {
+                var btn = $this.children('button');
+                if(data['status']) {
+                    btn.addClass('alert alert-success');
+                    btn.attr('type', 'button');
+                }else{
+                    btn.addClass('alert alert-danger');
+                    var htmlstr='<div class="alert alert-danger" role="alert">'+data['info']+'</div>';
+                    $('#accountBox').append(htmlstr);
+                }
+            });
+        return false;       //阻止表单提交
+    });
+});
+</script>
+{% endblock %}
