@@ -74,13 +74,36 @@
                 <span class="input-group-addon">编号</span>
                 <input type="text" name="num" class="form-control" placeholder="从查询结果获取">
             </div>
-                  <button class="btn btn-default" type="submit">删除预约</button>
+            <button class="btn btn-default" type="submit">删除预约</button>
         </form>
     </div>
 </div>
 {% endblock %}
 {% block script %}
 <script>
+var next_page = function(){
+    var $this = $(this);
+    $.post('/whubook/nextpage/',
+        $this.serialize(),
+        function(data){
+            if(data['status']) {
+                var htmlstr='<div class="alert alert-info" role="alert"></br>';
+                $('#nextpageForm').remove();
+                for(var book in data['info']){
+                    htmlstr += '编号: ' + data['info'][book]['BookNum'] + '</br>' + '书名: ' + data['info'][book]['BookName'] + '</br>' + '借阅情况: ' + data['info'][book]['Condition'] + '</br>' + '<img class="media-object" src="' + data['info'][book]['BookCover'] + '"></br></br>';
+                }
+                htmlstr += '</div>';
+                if(data['next_page_link']){
+                    htmlstr += '<form id="nextpageForm" method="POST"><input type="text" name="next_page_link" value="' + data['next_page_link'] + '"><button class="btn btn-default">下一页</button></form>';
+                }
+                $('#searchBox').append(htmlstr);
+            }else{
+                var htmlstr='<div class="alert alert-danger" role="alert">'+data['info']+'</div>';
+                $('#searchBox').html(htmlstr);
+            }
+        });
+    return false;       //阻止表单提交
+}
 $(document).ready(function() {
     $('#queryhistoryForm').submit(function() {
         //ajax 提交表单
@@ -91,9 +114,7 @@ $(document).ready(function() {
                 if(data['status']) {
                     var htmlstr='<div class="alert alert-info" role="alert"><h3>按借书倒序</h3></br>';
                     for(var book in data['info']){
-                        htmlstr += '编号: ' + data['info'][book]['BookNum'] + '</br>';
-                        htmlstr += '书名: ' + data['info'][book]['BookName'] + '</br>';
-                        htmlstr += '罚款: ' + data['info'][book]['Fines'] + '</br></br>';
+                        htmlstr += '编号: ' + data['info'][book]['BookNum'] + '</br>书名: ' + data['info'][book]['BookName'] + '</br>罚款: ' + data['info'][book]['Fines'] + '</br></br>';
                     }
                     htmlstr += '</div>';
                     $('#infoBox').html(htmlstr);;
@@ -113,10 +134,7 @@ $(document).ready(function() {
                 if(data['status']) {
                     var htmlstr='<div class="alert alert-info" role="alert"><h3>按借书倒序</h3></br>';
                     for(var book in data['info']){
-                        htmlstr += '编号: ' + data['info'][book]['BookNum'] + '</br>';
-                        htmlstr += '书名: ' + data['info'][book]['BookName'] + '</br>';
-                        htmlstr += '应还日期: ' + data['info'][book]['DateToReturn'] + '</br>';
-                        htmlstr += '罚款: ' + data['info'][book]['Fines'] + '</br></br>';
+                        htmlstr += '编号: ' + data['info'][book]['BookNum'] + '</br>' + '书名: ' + data['info'][book]['BookName'] + '</br>' + '应还日期: ' + data['info'][book]['ToDate'] + '</br>' + '罚款: ' + data['info'][book]['Fines'] + '</br></br>';
                     }
                     htmlstr += '</div>';
                     $('#infoBox').html(htmlstr);;
@@ -135,12 +153,11 @@ $(document).ready(function() {
             function(data) {
                 var htmlstr='<div class="alert alert-info" role="alert"><h3>续借结果</h3></br>';
                 if(data['status']) {
-                    htmlstr += data['info'];
-                    htmlstr += '</div>';
+                    htmlstr += data['info'] + '</div>';
                     $('#resultBox').html(htmlstr);;
                 }else{
                     console.log(data['info']['reason']);
-                    var htmlstr='<div class="alert alert-danger" role="alert"><h3>续借结果</h3>'+data['info']+'</div>';
+                    var htmlstr = '<div class="alert alert-danger" role="alert"><h3>续借结果</h3>'+data['info']+'</div>';
                     $('#resultBox').html(htmlstr);
                 }
             });
@@ -153,9 +170,7 @@ $(document).ready(function() {
             $this.serialize(),
             function(data) {
                 if(data['status']) {
-                    var htmlstr='<div class="alert alert-info" role="alert"><h3>续借结果</h3></br>';
-                    htmlstr += data['info'];
-                    htmlstr += '</div>';
+                    var htmlstr='<div class="alert alert-info" role="alert"><h3>续借结果</h3></br>' + data['info'] + '</div>';
                     $('#resultBox').html(htmlstr);;
                 }else{
                     var htmlstr='<div class="alert alert-danger" role="alert"><h3>续借结果</h3></br>'+data['info']+'</div>';
@@ -173,13 +188,14 @@ $(document).ready(function() {
                 if(data['status']) {
                     var htmlstr='<div class="alert alert-info" role="alert"><h3>搜索结果(前十条)</h3></br>';
                     for(var book in data['info']){
-                        htmlstr += '编号: ' + data['info'][book]['BookNum'] + '</br>';
-                        htmlstr += '书名: ' + data['info'][book]['BookName'] + '</br>';
-                        htmlstr += '借阅情况: ' + data['info'][book]['Condition'] + '</br>';
-                        htmlstr += '<img class="media-object" src="' + data['info'][book]['BookCover'] + '"></br></br>';
+                        htmlstr += '编号: ' + data['info'][book]['BookNum'] + '</br>' + '书名: ' + data['info'][book]['BookName'] + '</br>' + '借阅情况: ' + data['info'][book]['Condition'] + '</br>' + '<img class="media-object" src="' + data['info'][book]['BookCover'] + '"></br></br>';
                     }
                     htmlstr += '</div>';
-                    $('#searchBox').html(htmlstr);;
+                    if(data['next_page_link']){
+                        htmlstr += '<form id="nextpageForm" method="POST"><input type="hidden" name="next_page_link" value="' + data['next_page_link'] + '"><button class="form-group btn btn-default" type="submit">下一页</button></form>';
+                    }
+                    $('#searchBox').html(htmlstr);
+                    $('#nextpageForm').bind('submit',next_page);
                 }else{
                     var htmlstr='<div class="alert alert-danger" role="alert">'+data['info']+'</div>';
                     $('#searchBox').html(htmlstr);
@@ -194,9 +210,7 @@ $(document).ready(function() {
             $this.serialize(),
             function(data) {
                 if(data['status']) {
-                    var htmlstr='<div class="alert alert-info" role="alert"><h3>预约结果</h3></br>';
-                    htmlstr += data['info'];
-                    htmlstr += '</div>';
+                    var htmlstr='<div class="alert alert-info" role="alert"><h3>预约结果</h3></br>' + data['info'] + '</div>';
                     $('#orderBox').html(htmlstr);;
                 }else{
                     var htmlstr='<div class="alert alert-danger" role="alert"><h3>预约结果</h3></br>'+data['info']+'</div>';
@@ -214,12 +228,7 @@ $(document).ready(function() {
                 if(data['status']) {
                     var htmlstr='<div class="alert alert-info" role="alert"><h3>预约结果</h3></br>';
                     for(var book in data['info']){
-                        htmlstr += '编号: ' + data['info'][book]['BookNum'] + '</br>';
-                        htmlstr += '书名: ' + data['info'][book]['BookName'] + '</br>';
-                        htmlstr += '起始日期: ' + data['info'][book]['From'] + '</br>';
-                        htmlstr += '预约到期日期: ' + data['info'][book]['To'] + '</br>';
-                        htmlstr += '归还日期: ' + data['info'][book]['ReturnTime'] + '</br>';
-                        htmlstr += '藏书地点: ' + data['info'][book]['Location'] + '</br>';
+                        htmlstr += '编号: ' + data['info'][book]['BookNum'] + '</br>' + '书名: ' + data['info'][book]['BookName'] + '</br>' + '起始日期: ' + data['info'][book]['From'] + '</br>' + '预约到期日期: ' + data['info'][book]['To'] + '</br>' + '归还日期: ' + data['info'][book]['ReturnTime'] + '</br>' + '藏书地点: ' + data['info'][book]['Location'] + '</br>';
                     }
                     htmlstr += '</div>';
                     $('#orderBox').html(htmlstr);;
