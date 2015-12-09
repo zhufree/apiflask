@@ -90,7 +90,6 @@ def queryhistory(cookie):
                 'Fines': current_book_td[8].string if current_book_td[8].string else str(0),
                 'Location': current_book_td[9].string
             }
-            print current_book
             all_books.append(current_book)  # add current book into book list
             tds = tds[10:]  # cut current book
     except Exception, e:
@@ -248,7 +247,6 @@ def catch_book_info(page_url):
     if last_book_num % 10 == 0:
         nextpageUrl = re.match(
             r'http://\S+\?', page_url).group()+"func=short-jump&jump=%d" % (last_book_num+1)
-        print nextpageUrl
         return books, nextpageUrl
     else:
         return books, None
@@ -265,7 +263,7 @@ def searchbook(cookie, searchword):
         error["reason"] = e
         return error
     else:
-        if len(books[0]) > 10:
+        if len(books[0]) >= 10:
             result['info'] = {}
             result['info']['books_info'] = books[0]
             result['info']['next_page_link'] = books[1]
@@ -290,10 +288,8 @@ def orderbook(cookie, book_to_order):
             input_data = order_detail_soup.find_all('input')
             orderData = {inp['name']: inp['value'] for inp in input_data[:-1]}
             orderData['PICKUP'] = order_detail_soup.find('option')['value']
-            print orderData
             result_soup = bs(confirm_order_url + '&%s' %
                             cookie, post_data=urllib.urlencode(orderData))
-            print result_soup
             if u'届时请到该地取书' in str(result_soup):
                 result['info'] = 'order succeed'
                 return result
@@ -353,31 +349,3 @@ def deleteorder(cookie, order_to_delete):
         error["reason"] = e
         return error
 
-# if __name__ == '__main__':
-#     cookie = getcookie('','')['info']
-#     print cookie
-#     # print queryloan(cookie)
-#     # print renewall(cookie)
-#     # print renew(cookie, 1)
-#     booksinfo= searchbook(cookie,'编程珠玑')
-#     # print booksinfo
-
-#     print booksinfo['info'][4]['Condition']+booksinfo['info'][4]['OrderLink']
-#     book_to_order=None
-#     for book in booksinfo['info']:
-#         if book['BookNum'] == '5':
-#             book_to_order=book
-#         else:
-#             pass
-#     print book_to_order
-#     if book_to_order:
-#         print orderbook(cookie,book_to_order)
-#     print  queryorder(cookie)
-#     orders=queryorder(cookie)['info']
-#     order_to_delete=None
-#     for order in orders:
-#         if order['BookNum']=='1':
-#             order_to_delete=order
-
-#     if order_to_delete:
-#         print deleteorder(cookie,order_to_delete)

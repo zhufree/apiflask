@@ -88,15 +88,16 @@ var next_page = function(){
         function(data){
             if(data['status']) {
                 var htmlstr='<div class="alert alert-info" role="alert"></br>';
-                $('#nextpageForm').remove();
+                $('.nextpageForm').remove();
                 for(var book in data['info']){
                     htmlstr += '编号: ' + data['info'][book]['BookNum'] + '</br>' + '书名: ' + data['info'][book]['BookName'] + '</br>' + '借阅情况: ' + data['info'][book]['Condition'] + '</br>' + '<img class="media-object" src="' + data['info'][book]['BookCover'] + '"></br></br>';
                 }
                 htmlstr += '</div>';
                 if(data['next_page_link']){
-                    htmlstr += '<form id="nextpageForm" method="POST"><input type="text" name="next_page_link" value="' + data['next_page_link'] + '"><button class="btn btn-default">下一页</button></form>';
+                    htmlstr += '<form class="nextpageForm" method="POST"><input type="hidden" name="next_page_link" value="' + data['next_page_link'] + '"><button class="btn btn-default">下一页</button></form>';
                 }
                 $('#searchBox').append(htmlstr);
+                $('.nextpageForm').bind('submit',next_page);
             }else{
                 var htmlstr='<div class="alert alert-danger" role="alert">'+data['info']+'</div>';
                 $('#searchBox').html(htmlstr);
@@ -192,10 +193,10 @@ $(document).ready(function() {
                     }
                     htmlstr += '</div>';
                     if(data['next_page_link']){
-                        htmlstr += '<form id="nextpageForm" method="POST"><input type="hidden" name="next_page_link" value="' + data['next_page_link'] + '"><button class="form-group btn btn-default" type="submit">下一页</button></form>';
+                        htmlstr += '<form class="nextpageForm" method="POST"><input type="hidden" name="next_page_link" value="' + data['next_page_link'] + '"><button class="form-group btn btn-default" type="submit">下一页</button></form>';
                     }
                     $('#searchBox').html(htmlstr);
-                    $('#nextpageForm').bind('submit',next_page);
+                    $('.nextpageForm').bind('submit',next_page);
                 }else{
                     var htmlstr='<div class="alert alert-danger" role="alert">'+data['info']+'</div>';
                     $('#searchBox').html(htmlstr);

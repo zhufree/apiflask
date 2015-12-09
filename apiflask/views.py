@@ -111,7 +111,7 @@ def renew_():
 def search():
     keyword = request.form.get('keyword', '')
     search_result = searchbook(session['_cookie'], keyword)
-    print search_result
+    # print search_result
     if search_result['status']:
         if isinstance(search_result['info'], dict):
             session['books_info'] = search_result['info']['books_info']
@@ -120,14 +120,14 @@ def search():
                 "info": search_result['info']['books_info'], 
                 "next_page_link": search_result['info']['next_page_link']
                 }
-            print result
+            # print result
         else:
             session['books_info'] = search_result['info']
             result = {
                 "status": True, 
                 "info": search_result['info']
                 }
-            print result
+            # print result
     else:
         result = {"status": False, "info": search_result['reason']}
     return jsonify(result)
@@ -137,10 +137,12 @@ def search():
 def next_page():
     next_page_link = request.form.get('next_page_link', '')
     search_result = catch_book_info(next_page_link)
+    # print search_result
+    session['books_info'] += search_result[0]
     result = {
         "status": True, 
-        "info": search_result['info']['books_info'], 
-        "next_page_link": search_result['info']['next_page_link']
+        "info": search_result[0], 
+        "next_page_link": search_result[1]
         }
     return jsonify(result)
 
