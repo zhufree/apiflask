@@ -3,9 +3,10 @@
 import urllib
 import urllib2
 import re
+import sys
 
 from bs4 import BeautifulSoup
-import sys
+
 
 reload(sys)
 sys.setdefaultencoding('utf8')

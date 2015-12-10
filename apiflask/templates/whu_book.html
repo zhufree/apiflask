@@ -83,7 +83,7 @@
 <script>
 var next_page = function(){
     var $this = $(this);
-    $.post('/whubook/nextpage/',
+    $.post('nextpage/',
         $this.serialize(),
         function(data){
             if(data['status']) {
@@ -109,7 +109,7 @@ $(document).ready(function() {
     $('#queryhistoryForm').submit(function() {
         //ajax 提交表单
         var $this = $(this);
-        $.post('/whubook/history/',
+        $.post('history/',
             $this.serialize(),
             function(data) {
                 if(data['status']) {
@@ -129,7 +129,7 @@ $(document).ready(function() {
     $('#querynowForm').submit(function() {
         //ajax 提交表单
         var $this = $(this);
-        $.post('/whubook/current/',
+        $.post('current/',
             $this.serialize(),
             function(data) {
                 if(data['status']) {
@@ -149,7 +149,7 @@ $(document).ready(function() {
     $('#renewallForm').submit(function() {
         //ajax 提交表单
         var $this = $(this);
-        $.post('/whubook/renewall/',
+        $.post('renewall/',
             $this.serialize(),
             function(data) {
                 var htmlstr='<div class="alert alert-info" role="alert"><h3>续借结果</h3></br>';
@@ -167,7 +167,7 @@ $(document).ready(function() {
     $('#renewForm').submit(function() {
         //ajax 提交表单
         var $this = $(this);
-        $.post('/whubook/renew/',
+        $.post('renew/',
             $this.serialize(),
             function(data) {
                 if(data['status']) {
@@ -183,7 +183,7 @@ $(document).ready(function() {
     $('#searchForm').submit(function() {
         //ajax 提交表单
         var $this = $(this);
-        $.post('/whubook/search/',
+        $.post('search/',
             $this.serialize(),
             function(data) {
                 if(data['status']) {
@@ -207,7 +207,7 @@ $(document).ready(function() {
     $('#orderForm').submit(function() {
         //ajax 提交表单
         var $this = $(this);
-        $.post('/whubook/order/',
+        $.post('order/',
             $this.serialize(),
             function(data) {
                 if(data['status']) {
@@ -223,7 +223,7 @@ $(document).ready(function() {
     $('#queryorderForm').submit(function() {
         //ajax 提交表单
         var $this = $(this);
-        $.post('/whubook/queryorder/',
+        $.post('queryorder/',
             $this.serialize(),
             function(data) {
                 if(data['status']) {
@@ -243,7 +243,7 @@ $(document).ready(function() {
     $('#deleteorderForm').submit(function() {
         //ajax 提交表单
         var $this = $(this);
-        $.post('/whubook/deleteorder/',
+        $.post('deleteorder/',
             $this.serialize(),
             function(data) {
                 if(data['status']) {

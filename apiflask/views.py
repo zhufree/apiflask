@@ -5,21 +5,21 @@ from flask import request, jsonify, render_template, session, g
 from apiflask import app, db
 from apiflask.models import Student
 
-from library import *
+from book import *
 
 app.secret_key = 'zhufree'
 
 
-@app.route('/')
+@app.route('/whu/')
 def index():
     if 'stuid' in session:
         cur_stu = Student.query.filter(Student.stuid==session['stuid']).first()
-        return render_template('index.html', stu=cur_stu)
+        return render_template('whu_index.html', stu=cur_stu)
     else:
-        return render_template('index.html')
+        return render_template('whu_index.html')
 
 
-@app.route('/login/', methods=['POST'])
+@app.route('/whu/login/', methods=['POST'])
 def loginLibrary():
     session.permanent = True
     stuid = request.form.get('sid')
@@ -61,12 +61,12 @@ def loginLibrary():
             return jsonify(error)
 
 
-@app.route('/whubook/')
+@app.route('/whu/book/')
 def bookIndex():
-    return render_template('whubook.html')
+    return render_template('whu_book.html')
 
 
-@app.route('/whubook/history/', methods=['POST'])
+@app.route('/whu/book/history/', methods=['POST'])
 def historyBook():
     query_result = queryhistory(session['_cookie'])
     if query_result['status']:
@@ -76,7 +76,7 @@ def historyBook():
     return jsonify(result)
 
 
-@app.route('/whubook/current/', methods=['POST'])
+@app.route('/whu/book/current/', methods=['POST'])
 def currentBook():
     query_result = queryloan(session['_cookie'])
     if query_result['status']:
@@ -86,7 +86,7 @@ def currentBook():
     return jsonify(result)
 
 
-@app.route('/whubook/renewall/', methods=['POST'])
+@app.route('/whu/book/renewall/', methods=['POST'])
 def renewall_():
     renew_result = renewall(session['_cookie'])
     if renew_result['status']:
@@ -96,7 +96,7 @@ def renewall_():
     return jsonify(result)
 
 
-@app.route('/whubook/renew/', methods=['POST'])
+@app.route('/whu/book/renew/', methods=['POST'])
 def renew_():
     number = int(request.form.get('number'))
     renew_result = renew(session['_cookie'], number)
@@ -107,7 +107,7 @@ def renew_():
     return jsonify(result)
 
 
-@app.route('/whubook/search/', methods=['POST'])
+@app.route('/whu/book/search/', methods=['POST'])
 def search():
     keyword = request.form.get('keyword', '')
     search_result = searchbook(session['_cookie'], keyword)
@@ -133,7 +133,7 @@ def search():
     return jsonify(result)
 
 
-@app.route('/whubook/nextpage/', methods=['POST'])
+@app.route('/whu/book/nextpage/', methods=['POST'])
 def next_page():
     next_page_link = request.form.get('next_page_link', '')
     search_result = catch_book_info(next_page_link)
@@ -147,7 +147,7 @@ def next_page():
     return jsonify(result)
 
 
-@app.route('/whubook/order/', methods=['POST'])
+@app.route('/whu/book/order/', methods=['POST'])
 def order():
     num = request.form.get('num', '')
     books_info = session['books_info']
@@ -166,7 +166,7 @@ def order():
     return jsonify(result)#
 
 
-@app.route('/whubook/queryorder/', methods=['POST'])
+@app.route('/whu/book/queryorder/', methods=['POST'])
 def queryorder_():
     query_result = queryorder(session['_cookie'])
     if query_result['status']:
@@ -177,7 +177,7 @@ def queryorder_():
     return jsonify(result)
 
 
-@app.route('/whubook/deleteorder/', methods=['POST'])
+@app.route('/whu/book/deleteorder/', methods=['POST'])
 def deleteorder_():
     num = request.form.get('num', '')
     orders = session['orders']
