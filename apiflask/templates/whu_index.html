@@ -73,7 +73,7 @@ $(document).ready(function() {
     //表单 submit 事件  
     $('#bindForm').submit(function() {
         //ajax 提交表单  
-        $.post('/login/',
+        $.post('login/',
             $('#bindForm').serialize(),
             function(data) { 
                 if(data['status']) {
@@ -89,7 +89,7 @@ $(document).ready(function() {
     $('.loginForm').submit(function() {
         //ajax 提交表单
         var $this = $(this);
-        $.post('/login/',
+        $.post('login/',
             $this.serialize(),
             function(data) {
                 var btn = $this.children('button');

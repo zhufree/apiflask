@@ -10,6 +10,7 @@ import sys
 from bs4 import BeautifulSoup
 
 from book import bs, getcookie
+
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
@@ -23,7 +24,7 @@ result = {"info": "", "status": True}
 error = {"reason": "", "status": False}
 
 
-def getroominfo(year, month, day, region):
+def get_room_info(region, year=now.year, month=now.year,day=now.day):
     # 获取空闲研修室信息，参数为年月日和学部（1是本部，2是医学部）
     check_base_url = 'http://reserv.lib.whu.edu.cn/day.php?year={year}&month={month}&day={day}'.format(
         year=year, month=month, day=day)
@@ -89,7 +90,8 @@ def getroominfo(year, month, day, region):
                 room_dict['B2.2']['3'].append(room[5:])
             elif hour == "hour=18":
                 room_dict['B2.2']['4'].append(room[5:])
-        return room_dict
+        result['info'] = room_dict
+        return result
     # 医学部
     elif region == '2':
         room_dict['Y1-2'] = {'1': [], '2': [], '3': [], '4': []}  # area=12
@@ -123,7 +125,8 @@ def getroominfo(year, month, day, region):
                 room_dict['Y3-10']['3'].append(room[5:])
             elif hour == "hour=18":
                 room_dict['Y3-10']['4'].append(room[5:])
-        return room_dict
+        result['info'] = room_dict
+        return result
     elif region == '3':
         room_dict['G1-2'] = {'1': [], '2': [], '3': [], '4': []}  # area=12
         room_dict['G1-3'] = {'1': [], '2': [], '3': [], '4': []}  # area=12
@@ -176,13 +179,14 @@ def getroominfo(year, month, day, region):
                     room_dict['G3-8']['3'].append(room[5:])
                 elif hour == "hour=18":
                     room_dict['G3-8']['4'].append(room[5:])
-        return room_dict
+        result['info'] = room_dict
+        return result
     else:
-        error["reason"] = u"不合法的数据"
+        error["reason"] = "invalid region"
         return error
 
 
-def getuserinfo(cookie):  # 获取用户信息（主要是name和ID）, 需要cookie
+def get_user_info(cookie):  # 获取用户信息（主要是name和ID）, 需要cookie
     handle_url = "http://metalib.lib.whu.edu.cn/pds?func=Bor-info"
     try:
         info_request = urllib2.Request(
@@ -196,10 +200,13 @@ def getuserinfo(cookie):  # 获取用户信息（主要是name和ID）, 需要co
         error["reason"] = e
         return error
     else:
-        return name, ID
+        result['info'] = name,ID
+        return result
 
 
-def reservbyroom(cookie, sid, name, ID, room, time, day, month=now.month, year=now.year):  # 需要cookie
+# 需要cookie
+def order_by_room(cookie, sid, name, ID, room, time, day=now.day, month=now.month, year=now.year):
+    roomid = None
     try:
         handle_url = 'http://reserv.lib.whu.edu.cn/edit_entry_handler.php'
         postdata = {
@@ -232,7 +239,7 @@ def reservbyroom(cookie, sid, name, ID, room, time, day, month=now.month, year=n
             url=handle_url, data=urllib.urlencode(postdata))
         order_request.add_header('Cookie',  cookie)
         soup = BeautifulSoup(urllib2.urlopen(order_request, timeout=4), 'lxml')
-        pageinfo = str(soup)  
+        pageinfo = str(soup)
         # print pageinfo
     except Exception, e:
         error["reason"] = e
@@ -250,13 +257,14 @@ def reservbyroom(cookie, sid, name, ID, room, time, day, month=now.month, year=n
         elif 'The new booking will conflict with the following entries' in pageinfo:
             error["reason"] = "new booking will conflict with other"
             return error
-        else:# 以下代码为获取预订的房间id
+        else:  # 以下代码为获取预订的房间id
             links = soup.find_all(
                 'a', attrs={'href': re.compile('view_entry')})  # 抓取已预订的房间链接
             # str                 # 将gb2312编码为utf-8
             for link in links:
                 if link.renderContents() == name:
-                    roomid = re.search(r"id=\d+",link['href']).group()[3:]  # 正则匹配出id
+                    roomid = re.search(
+                        r"id=\d+", link['href']).group()[3:]  # 正则匹配出id
             if roomid:
                 result["info"] = roomid
                 return result
@@ -289,11 +297,12 @@ def cancel(cookie, roomid):
             return error
 
 if __name__ == '__main__':
-    cookie = getcookie('2013302480033', '114028')['info']
-    print cookie
-    userinfo = getuserinfo(cookie)
-    name, ID = userinfo[0], userinfo[1]
-    # print getroominfo('2015', '12', '10', '1')
-    order_result = reservbyroom(cookie, '2013302480033', name, ID, '38', '3', '10', '12')
-    print order_result
-    print cancel(cookie, order_result['info'])
+    # cookie = getcookie('2013302480033', '114028')['info']
+    # print cookie
+    # userinfo = getuserinfo(cookie)
+    # name, ID = userinfo[0], userinfo[1]
+    print get_room_info('1', '')
+    # order_result = order_by_room(
+    #     cookie, '2013302480033', name, ID, '38', '3', '10', '12')
+    # print order_result
+    # print cancel(cookie, order_result['info'])

@@ -5,13 +5,21 @@ from flask import request, jsonify, render_template, session, g
 from apiflask import app, db
 from apiflask.models import Student
 
+import datetime
+
 from book import *
+from room import *
 
 app.secret_key = 'zhufree'
+now = datetime.datetime.now()
 
-
-@app.route('/whu/')
+@app.route('/')
 def index():
+    return render_template('index.html')
+
+
+@app.route('/whu/v1/')
+def whu_index():
     if 'stuid' in session:
         cur_stu = Student.query.filter(Student.stuid==session['stuid']).first()
         return render_template('whu_index.html', stu=cur_stu)
@@ -19,8 +27,8 @@ def index():
         return render_template('whu_index.html')
 
 
-@app.route('/whu/login/', methods=['POST'])
-def loginLibrary():
+@app.route('/whu/v1/login/', methods=['POST'])
+def login_library():
     session.permanent = True
     stuid = request.form.get('sid')
     cur_stu = Student.query.filter(Student.stuid==stuid).first()
@@ -29,6 +37,10 @@ def loginLibrary():
         if login_result['status']:
             session['stuid'] = cur_stu.stuid
             session['_cookie'] = login_result['info']
+            user_info = get_user_info(session['_cookie'])
+            # print user_info
+            session['stuname'] = user_info['info'][0]
+            session['stuID'] = user_info['info'][1]
             result = {
                     'status': True,
                     'info': cur_stu.stuid
@@ -48,6 +60,9 @@ def loginLibrary():
             db.session.commit()
             session['stuid'] = new_stu.stuid
             session['_cookie'] = login_result['info']
+            user_info = get_user_info(session['_cookie'])
+            session['stuname'] = user_info[0]
+            session['stuID'] = user_info[1]
             result = {
                 'status': True,
                 'info': new_stu.stuid
@@ -61,12 +76,12 @@ def loginLibrary():
             return jsonify(error)
 
 
-@app.route('/whu/book/')
+@app.route('/whu/v1/book/')
 def bookIndex():
     return render_template('whu_book.html')
 
 
-@app.route('/whu/book/history/', methods=['POST'])
+@app.route('/whu/v1/book/history/', methods=['POST'])
 def historyBook():
     query_result = queryhistory(session['_cookie'])
     if query_result['status']:
@@ -76,7 +91,7 @@ def historyBook():
     return jsonify(result)
 
 
-@app.route('/whu/book/current/', methods=['POST'])
+@app.route('/whu/v1/book/current/', methods=['POST'])
 def currentBook():
     query_result = queryloan(session['_cookie'])
     if query_result['status']:
@@ -86,7 +101,7 @@ def currentBook():
     return jsonify(result)
 
 
-@app.route('/whu/book/renewall/', methods=['POST'])
+@app.route('/whu/v1/book/renewall/', methods=['POST'])
 def renewall_():
     renew_result = renewall(session['_cookie'])
     if renew_result['status']:
@@ -96,7 +111,7 @@ def renewall_():
     return jsonify(result)
 
 
-@app.route('/whu/book/renew/', methods=['POST'])
+@app.route('/whu/v1/book/renew/', methods=['POST'])
 def renew_():
     number = int(request.form.get('number'))
     renew_result = renew(session['_cookie'], number)
@@ -107,7 +122,7 @@ def renew_():
     return jsonify(result)
 
 
-@app.route('/whu/book/search/', methods=['POST'])
+@app.route('/whu/v1/book/search/', methods=['POST'])
 def search():
     keyword = request.form.get('keyword', '')
     search_result = searchbook(session['_cookie'], keyword)
@@ -133,7 +148,7 @@ def search():
     return jsonify(result)
 
 
-@app.route('/whu/book/nextpage/', methods=['POST'])
+@app.route('/whu/v1/book/nextpage/', methods=['POST'])
 def next_page():
     next_page_link = request.form.get('next_page_link', '')
     search_result = catch_book_info(next_page_link)
@@ -147,7 +162,7 @@ def next_page():
     return jsonify(result)
 
 
-@app.route('/whu/book/order/', methods=['POST'])
+@app.route('/whu/v1/book/order/', methods=['POST'])
 def order():
     num = request.form.get('num', '')
     books_info = session['books_info']
@@ -166,7 +181,7 @@ def order():
     return jsonify(result)#
 
 
-@app.route('/whu/book/queryorder/', methods=['POST'])
+@app.route('/whu/v1/book/queryorder/', methods=['POST'])
 def queryorder_():
     query_result = queryorder(session['_cookie'])
     if query_result['status']:
@@ -177,7 +192,7 @@ def queryorder_():
     return jsonify(result)
 
 
-@app.route('/whu/book/deleteorder/', methods=['POST'])
+@app.route('/whu/v1/book/deleteorder/', methods=['POST'])
 def deleteorder_():
     num = request.form.get('num', '')
     orders = session['orders']
@@ -193,4 +208,69 @@ def deleteorder_():
             result = {"status": False, "info": delete_reault['result']}
     else:
         result = {"status": False, "info": 'no such order'}
+    return jsonify(result)
+
+
+@app.route('/whu/v1/room/')
+def room_index():
+    return render_template('whu_room.html')
+
+
+@app.route('/whu/v1/room/check/', methods=['POST'])
+def check_room():
+    year, month, day, region = (request.form.get('year'), 
+        request.form.get('month'),
+        request.form.get('day'),
+        request.form.get('region', '')
+        )
+    session['region'] = region, year, month, day
+    session['year'] = year if len(year) > 0 else now.year
+    session['month'] = month if len(month) > 0 else now.month
+    session['day'] = day if len(day) > 0 else now.day
+    # print year, month, day
+    check_result = get_room_info(region, day, year, month)
+    # print check_result
+    if check_result['status']:
+        result = {"status": True, "info": check_result['info']}
+    else:
+        result = {"status": False, "info": check_result['reason']}
+    return jsonify(result)
+
+
+@app.route('/whu/v1/room/order/', methods=['POST'])
+def order_room():
+    room, time = request.form.get('room'),request.form.get('time')
+    order_result = order_by_room(
+        session['_cookie'],
+        session['stuid'],
+        session['stuname'],
+        session['stuID'],
+        room, 
+        time, 
+        session['day'], 
+        session['month'],
+        session['year'],
+            )
+    print session['_cookie'],session['stuid'],session['stuname'],session['stuID'],room, time, session['day'], session['month'],session['year']
+    session['roomid'] = order_result['info']
+    if order_result['status']:
+        result = {"status": True, "info": order_result['info']}
+    else:
+        result = {"status": False, "info": order_result['reason']}
+    return jsonify(result)
+
+
+@app.route('/whu/v1/room/cancel/', methods=['POST'])
+def cancel_room():
+    cancel_result = cancel(session['_cookie'], session['roomid'])
+    if cancel_result['status']:
+        result = {"status": True, "info": cancel_result['info']}
+    else:
+        result = {"status": False, "info": cancel_result['reason']}
+    return jsonify(result)
+
+
+@app.route('/whu/v1/room/roomid/')
+def roomid():
+    result = {"status": True, "info": session['roomid']}
     return jsonify(result)
